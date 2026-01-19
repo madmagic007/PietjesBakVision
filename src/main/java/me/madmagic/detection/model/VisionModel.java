@@ -1,5 +1,6 @@
-package me.madmagic.imagedetection;
+package me.madmagic.detection.model;
 
+import me.madmagic.detection.model.params.ModelParamCollection;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.Scalar;
 
@@ -11,18 +12,24 @@ import static org.bytedeco.opencv.global.opencv_core.inRange;
 import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2HSV;
 import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
 
-public abstract class ImageDetection {
+public abstract class VisionModel {
 
-    public Map<String, Integer> params = new HashMap<>() {{
-        put("showContours", 0);
-        put("showContourArea", 0);
-        put("showContourCompactness", 0);
+    public final String name;
 
-        put("showPips", 1);
-        put("showPipArea", 0);
-        put("showPipCircularity", 0);
+    public VisionModel(String name) {
+        this.name = name;
+    }
 
-        put("showDiceVal", 1);
+    public ModelParamCollection params = new ModelParamCollection() {{
+        add("showContours", false);
+        add("showContourArea", false);
+        add("showContourCompactness", false);
+
+        add("showPips", false);
+        add("showPipArea", false);
+        add("showPipCircularity", false);
+
+        add("showDiceVal", false);
     }};
 
     public void doHSVFiltering(Mat src, int v1, int v2, int v3, int v4, int v5, int v6) {
@@ -41,4 +48,8 @@ public abstract class ImageDetection {
     }
 
     public abstract List<Integer> getDieScore(Mat img, Mat vis);
+
+    public static final Map<String, VisionModel> models = new HashMap<>() {{
+        put("WhiteDieBlackPips", new WhiteDieBlackPips("WhiteDieBlackPips"));
+    }};
 }

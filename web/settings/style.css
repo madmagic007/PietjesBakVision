@@ -1,0 +1,42 @@
+.controls-container {
+    font-family: sans-serif;
+    max-width: 500px;
+    padding: 10px;
+}
+
+.control-wrapper {
+    display: flex;
+    align-items: center;
+    margin: 6px 0;
+    flex-wrap: wrap;
+}
+
+.control-label {
+    width: 220px;
+    flex-shrink: 0;
+    word-break: break-word;
+}
+
+.control-min {
+    width: 10px;
+    flex-shrink: 0;
+}
+
+.control-max {
+    width: 60px;
+    flex-shrink: 0;
+}
+
+.control-slider {
+    flex: 1 1 auto;
+    margin: 0 6px;
+}
+
+.control-value {
+    width: 60px;
+    margin-left: 6px;
+}
+
+.control-checkbox {
+    margin-left: 4px;
+}

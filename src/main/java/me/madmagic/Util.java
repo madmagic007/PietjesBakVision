@@ -2,12 +2,7 @@ package me.madmagic;
 
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.opencv.global.opencv_imgproc;
-import org.bytedeco.opencv.global.opencv_videoio;
 import org.bytedeco.opencv.opencv_core.*;
-import org.bytedeco.opencv.opencv_videoio.VideoCapture;
-import org.bytedeco.opencv.opencv_videoio.VideoWriter;
-
-import java.util.function.Consumer;
 
 import static org.bytedeco.opencv.global.opencv_highgui.imshow;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imread;
@@ -21,28 +16,6 @@ public class Util {
 
     public static Mat loadImage(String path) {
         return imread(path);
-    }
-
-    public static void openCamera(Consumer<Mat> videoFrameCB, int camIndex) {
-        VideoCapture capture = new VideoCapture(camIndex);
-        capture.set(opencv_videoio.CAP_PROP_FOURCC, VideoWriter.fourcc((byte) 'M', (byte) 'J', (byte) 'P', (byte) 'G')); // MJPG
-        double width = capture.get(opencv_videoio.CAP_PROP_FRAME_WIDTH);
-        double height = capture.get(opencv_videoio.CAP_PROP_FRAME_HEIGHT);
-        System.out.println("Camera resolution: " + width + " x " + height);
-        capture.set(opencv_videoio.CAP_PROP_FRAME_WIDTH, 3840);
-        capture.set(opencv_videoio.CAP_PROP_FRAME_HEIGHT, 2160);
-
-        if (!capture.isOpened()) {
-            System.out.println("Can not open the cam !!!");
-            return;
-        }
-
-        Mat cameraFrame = new Mat();
-        new Thread(() -> {
-            while (capture.read(cameraFrame)) {
-                videoFrameCB.accept(cameraFrame);
-            }
-        }).start();
     }
 
     public static Point getXY(Mat mat, int offetX, int offsetY) {

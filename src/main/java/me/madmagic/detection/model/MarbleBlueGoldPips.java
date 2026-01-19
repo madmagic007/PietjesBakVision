@@ -1,4 +1,4 @@
-package me.madmagic.imagedetection;
+package me.madmagic.detection.model;
 
 import me.madmagic.Util;
 import org.bytedeco.opencv.opencv_core.*;
@@ -8,7 +8,7 @@ import java.util.*;
 import static org.bytedeco.opencv.global.opencv_core.bitwise_and;
 import static org.bytedeco.opencv.global.opencv_imgproc.*;
 
-public class MarbleBlueGoldPips extends ImageDetection {
+public class MarbleBlueGoldPips extends VisionModel {
 
     private static final Mat edgesKernel = getStructuringElement(MORPH_RECT, new Size(8, 8));
     private static final Mat pipKernel = getStructuringElement(MORPH_ELLIPSE, new Size(7, 7));
@@ -46,6 +46,11 @@ public class MarbleBlueGoldPips extends ImageDetection {
     }};
 
     private static final Mat m1 = new Mat();
+
+    public MarbleBlueGoldPips(String name) {
+        super(name);
+    }
+
     public MatVector getContours(Mat img, Mat vis) {
         Size blurSize = Util.correctBlur(params.get("contourBlur"));
         cvtColor(img, m1, COLOR_BGR2GRAY);
