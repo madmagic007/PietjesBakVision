@@ -29,4 +29,11 @@ public class ModelParamCollection extends HashMap<String, ModelParam> {
 
         return params;
     }
+
+    public void update(String key, int value) {
+        ModelParam p = get(key);
+        if (p == null) return;
+
+        p.value = value;
+    }
 }

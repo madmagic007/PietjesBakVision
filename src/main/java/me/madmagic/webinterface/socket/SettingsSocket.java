@@ -28,11 +28,21 @@ public class SettingsSocket implements WebSocketListener {
     public void onWebSocketText(String message) {
         if (s == null || !s.isOpen()) return;
 
-        System.out.println(message);
-
         if (message.equals("request")) {
             SessionRegistry.broadcastSettings(getGlobalMessage());
+            return;
         }
+
+        try {
+            JSONObject o = new JSONObject(message);
+            String msgType = o.getString("type");
+
+            if (msgType.equals("update")) {
+                VisionRunner.updateSetting(o.getString("model"), o.getString("key"), o.getInt("value"));
+            } else if (msgType.equals("reset")) {
+                //stub
+            }
+        } catch (Exception ignored) {}
     }
 
     @Override

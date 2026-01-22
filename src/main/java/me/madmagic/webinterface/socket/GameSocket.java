@@ -18,11 +18,13 @@ public class GameSocket implements WebSocketListener {
     public void onWebSocketConnect(Session session) {
         s = session;
         SessionRegistry.addGameSession(s);
+        System.out.println("open");
     }
 
     @Override
     public void onWebSocketClose(int statusCode, String reason) {
         SessionRegistry.removeSession(s);
+        System.out.println("close");
         s = null;
     }
 }

@@ -4,6 +4,7 @@ import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.opencv.global.opencv_imgproc;
 import org.bytedeco.opencv.opencv_core.*;
 
+import static org.bytedeco.opencv.global.opencv_core.inRange;
 import static org.bytedeco.opencv.global.opencv_highgui.imshow;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imread;
 import static org.bytedeco.opencv.global.opencv_imgproc.*;
@@ -107,5 +108,20 @@ public class Util {
         pt.close();
 
          return result >= 0;
+    }
+
+    public void doHSVFiltering(Mat src, int v1, int v2, int v3, int v4, int v5, int v6) {
+        cvtColor(src, src, COLOR_BGR2HSV);
+        Scalar lower = new Scalar(v1, v2, v3, 0);
+        Scalar upper = new Scalar(v4, v5, v6, 0);
+
+        Mat lowerMat = new Mat(lower);
+        Mat upperMat = new Mat(upper);
+        inRange(src, lowerMat, upperMat, src);
+
+        lower.close();
+        upper.close();
+        lowerMat.close();
+        upperMat.close();
     }
 }

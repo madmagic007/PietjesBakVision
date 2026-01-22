@@ -61,4 +61,10 @@ public class VisionRunner {
     public static JSONObject getParamList() {
         return VisionModel.models.get(getActiveModelName()).params.asJson();
     }
+
+    public static void updateSetting(String modelName, String key, int value) {
+        if (!modelName.equals(getActiveModelName())) return;
+
+        VisionModel.models.get(getActiveModelName()).params.update(key, value);
+    }
 }
