@@ -1,6 +1,6 @@
 package me.madmagic.detection.model;
 
-import org.bytedeco.opencv.opencv_core.Mat;
+import org.bytedeco.opencv.opencv_core.UMat;
 
 import java.util.List;
 
@@ -272,7 +272,7 @@ public class MarbleBlueGoldPips extends VisionModel {
 //    }
 
     @Override
-    public List<Integer> getDieScore(Mat img, Mat vis) {
+    public List<Integer> getDieScore(UMat img) {
         return List.of();
     }
 }

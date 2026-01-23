@@ -1,7 +1,8 @@
 const ws = new WebSocket("ws://localhost:8080/ws/settings");
 
+const slidersDiv = document.getElementById("sliders")
 const container = document.createElement("div");
-document.body.appendChild(container);
+slidersDiv.appendChild(container);
 
 let currentModel = null;
 const controlMap = {};
@@ -133,3 +134,86 @@ function updateUI(message) {
         }
     }
 }
+
+const canvasesContainer = document.getElementById("mats");
+const canvases = [];
+
+let latestFrame = null;
+let rendering = false;
+
+let msgCount = 0;
+let frameCount = 0;
+let startTime = performance.now();
+
+const matWs = new WebSocket("ws://localhost:8080/ws/video");
+matWs.binaryType = "arraybuffer";
+matWs.onmessage = e => {
+    msgCount++;
+    latestFrame = e.data;
+    if (!rendering) renderFrames();
+};
+
+function renderFrames() {
+    if (!latestFrame) return;
+    rendering = true;
+
+    const e = latestFrame;
+    latestFrame = null;
+
+    const t0 = performance.now();
+
+    const dv = new DataView(e);
+    let offset = 0;
+
+    const count = dv.getInt32(offset);
+    offset += 4;
+
+    let matsProcessed = 0;
+
+    for (let i = 0; i < count; i++) {
+        const imgLen = dv.getInt32(offset);
+        offset += 4;
+
+        const imgBytes = new Uint8Array(e, offset, imgLen);
+        offset += imgLen;
+
+        const tDecodeStart = performance.now();
+        createImageBitmap(new Blob([imgBytes], { type: "image/jpeg" })).then(bitmap => {
+            const tDecodeEnd = performance.now();
+            // create canvas if needed
+            let ctx = canvases[i];
+            if (!ctx) {
+                const canvas = document.createElement("canvas");
+                container.appendChild(canvas);
+                ctx = canvas.getContext("2d");
+                canvases[i] = ctx;
+            }
+
+            const tDrawStart = performance.now();
+            ctx.canvas.width = bitmap.width;
+            ctx.canvas.height = bitmap.height;
+            ctx.drawImage(bitmap, 0, 0);
+            const tDrawEnd = performance.now();
+
+            matsProcessed++;
+            if (matsProcessed === count) {
+                // frame fully rendered
+                const t1 = performance.now();
+                frameCount++;
+
+                // log stats every second
+                if (t1 - startTime >= 1000) {
+                    console.log(`Msgs/sec: ${msgCount}, Frames/sec: ${frameCount}`);
+                    msgCount = 0;
+                    frameCount = 0;
+                    startTime = t1;
+                }
+
+                console.log(`Frame render duration: total=${(t1-t0).toFixed(1)}ms, decode=${(tDecodeEnd-tDecodeStart).toFixed(1)}ms, draw=${(tDrawEnd-tDrawStart).toFixed(1)}ms`);
+
+                rendering = false;
+                if (latestFrame) renderFrame();
+            }
+        });
+    }
+};

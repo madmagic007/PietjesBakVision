@@ -10,13 +10,26 @@
 </head>
 <body>
 <div id="headerBar">
-    <label for="inputPlayer" class="inputWrapper">
-        <input type="text" id="inputPlayer" placeholder="" >
-        <span class="inputLabel">Player</span>
+    <div id="header-left">
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <label for="inputPlayer" class="inputWrapper">
+            <input type="text" id="inputPlayer" placeholder="" >
+            <span class="inputLabel">Player</span>
+        </label>
+    </div>
+    <label for="detection">
+        <input type="checkbox" id="detection" onchange="sendWSAction('detectionState', this.checked)"/>
+        <span id="detectionLabel" class="detectionInActive">Detectie</span>
     </label>
-    <button id="btnJoin" onclick="sendWSAction('join')">Speel mee</button>
-    <button id="btnLeave" onclick="sendWSAction('leave')">Verlaat</button>
-    <button id="btnNewGame" onclick="sendWSAction('new')">Niew spel</button>
+</div>
+<div class="side-menu" id="sideMenu">
+    <a onclick="sendWSAction('join')">Speel mee</a>
+    <a onclick="sendWSAction('leave')">Verlaat</a>
+    <a onclick="sendWSAction('newGame')">Nieuw spel</a>
 </div>
 <table id="tblThrow">
     <tr>
@@ -30,8 +43,12 @@
         <td id="fieldHighest">0</td>
     </tr>
     <tr>
+        <th>Max worpen:</th>
+        <td id="fieldThrowMax">3</td>
+    </tr>
+    <tr>
         <th>Worp #:</th>
-        <td id="fieldThrownCnt">0</td>
+        <td id="fieldThrowCnt">0</td>
     </tr>
 </table>
 <button id="btnCall" class="btnAction" onclick="sendWSAction('call')">call</button>

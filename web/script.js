@@ -1,10 +1,23 @@
 const ws = new WebSocket("ws://localhost:8080/ws/game");
 
-ws.onopen = () => {
-};
-
 ws.onmessage = e => {
     console.log("from server:", e.data);
+    let o = JSON.parse(e.data);
+
+    switch (o["action"]) {
+        case "detectionState":
+            let lbl = document.getElementById("detectionLabel")
+
+            if (o["detectionState"]) {
+                lbl.classList.add("detectionActive");
+                lbl.classList.remove("detectionInActive");
+            } else {
+                lbl.classList.remove("detectionActive");
+                lbl.classList.add("detectionInActive");
+            }
+
+            break;
+    }
 };
 
 function sendWS(json) {
@@ -17,11 +30,14 @@ function sendWSAction(action) {
     sendWS({action: action});
 }
 
-function isNumberKey(evt) {
-    var charCode = (evt.which) ? evt.which : evt.keyCode
-    if (charCode > 31 && (charCode < 48 || charCode > 57))
-    return false;
-    return true;
+function sendWSAction(action, value) {
+    let o = {
+        action: action
+    }
+
+    o[action] = value;
+
+    sendWS(o);
 }
 
 function setupTable(data) {
@@ -62,7 +78,7 @@ function setupTable(data) {
         row.appendChild(nameCell);
 
         const pointsCell = document.createElement('td');
-        pointsCell.textContent = '69';
+        pointsCell.textContent = '9';
         pointsCell.id = 'points_' + name;
         pointsCell.classList.add('cellPoints');
         row.appendChild(pointsCell);
@@ -83,6 +99,14 @@ function setupTable(data) {
         table.appendChild(row);
     });
 }
+
+const hamburger = document.getElementById('hamburger');
+const sideMenu = document.getElementById('sideMenu');
+
+hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('active');
+    sideMenu.classList.toggle('active');
+});
 
 const myData = {
     names: ['PlayerA', 'PlayerB', 'PlayerC', "PlayerD"]

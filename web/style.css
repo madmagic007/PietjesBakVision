@@ -21,9 +21,10 @@ body {
     padding-right: 10px;
 }
 
-#headerBar button {
-    height: 30px;
-    width: 100px;
+#header-left {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 button {
@@ -40,7 +41,7 @@ button:hover {
     border-color: #49f
 }
 
-button:active {
+button:active, a:active {
     transform: translate3D(2px, 2px, 0);
 }
 
@@ -104,7 +105,7 @@ button:active {
 .btnAction {
     height: 100px;
     width: 40vw;
-    margin-left: 6.66vw;
+    margin-left: 6vw;
     position: relative;
     top: 50px;
 }
@@ -135,4 +136,76 @@ table {
 .cellName {
     text-align: left;
     height: 50px;
+}
+
+.detectionActive {
+    color: #5a5
+}
+
+.detectionInActive {
+    color: #a55
+}
+
+.hamburger {
+    position: relative;
+    margin-right: 20px;
+    width: 30px;
+    height: 22px;
+    cursor: pointer;
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.hamburger span {
+    display: block;
+    height: 4px;
+    width: 100%;
+    background-color: #07F;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+.hamburger.active span:nth-child(1) {
+    width: 133%;
+    transform: rotate(45deg) translate(6px, 6px);
+}
+
+.hamburger.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+    width: 133%;
+    transform: rotate(-45deg) translate(6px, -6px);
+}
+
+.side-menu {
+    position: fixed;
+    top: 0;
+    left: -252px;
+    width: 250px;
+    height: 100%;
+    background-color: #113;
+    border-right: 2px solid #039;
+    padding-top: 60px;
+    transition: left 0.3s ease;
+    z-index: 1000;
+}
+
+.side-menu a {
+    display: block;
+    padding: 15px 25px;
+    text-decoration: none;
+    color: #fff;
+    transition: background 0.2s;
+}
+
+.side-menu a:hover {
+    background-color: #039;
+}
+
+.side-menu.active {
+    left: 0;
 }

@@ -1,7 +1,7 @@
 package me.madmagic.detection.model;
 
 import me.madmagic.detection.model.params.ModelParamCollection;
-import org.bytedeco.opencv.opencv_core.Mat;
+import org.bytedeco.opencv.opencv_core.UMat;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +27,7 @@ public abstract class VisionModel {
         add("showDiceVal", false);
     }};
 
-    public abstract List<Integer> getDieScore(Mat img, Mat vis);
+    public abstract List<Integer> getDieScore(UMat img);
 
     public static final Map<String, VisionModel> models = new HashMap<>() {{
         put("WhiteDieBlackPips", new WhiteDieBlackPips("WhiteDieBlackPips"));
