@@ -5,28 +5,41 @@ import me.madmagic.webinterface.socket.SessionRegistry;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 public class GameInstance {
 
-    private static final List<Player> players = Arrays.asList(
-            new Player("Speler1"),
-            new Player("Speler2"),
-            new Player("Speler3")
-    );
+    private static final List<Player> players = new ArrayList<>();
 
     private static int maxThrowsThisRound = 3,
                         curThrowCount = 1,
-                        curPlayerIndex = 0,
-                        roundStartIndex = 0,
+                        curPlayerIndex = -1,
+                        roundStartIndex = -1,
                         winningPlayerIndex = -1;
 
     private static ThrowVal highestThisRound = ThrowVal.blank;
 
-    public static void newGame() {
+    public static void newGame(String startingPlayer) {
+        if (!startingPlayer.isEmpty()) {
+            for (int i = 0; i < players.size(); i++) {
+                Player p = players.get(i);
+                if (p.name.equals(startingPlayer)) {
+                    roundStartIndex = i;
+                    curPlayerIndex = i;
+                }
+            }
+        }
+
+        if (roundStartIndex == -1) {
+            roundStartIndex = 0;
+            curPlayerIndex = 0;
+        }
+
         players.forEach(Player::newGame);
         newRound();
+
+        broadcastGame();
     }
 
     public static void newRound() {
@@ -142,18 +155,23 @@ public class GameInstance {
             pA.put(data);
         });
 
-        String winningPlayerName = "";
-        if (winningPlayerIndex >= 0) {
-            winningPlayerName = players.get(winningPlayerIndex).name;
-        }
-
-        return new JSONObject()
+        JSONObject o = new JSONObject()
                 .put("highestThisRound", highestThisRound.scoreAsString())
                 .put("curThrowCount", curThrowCount)
                 .put("maxThrowsThisRound", maxThrowsThisRound)
                 .put("detectionState", VisionRunner.isRunning())
-                .put("curPlayer", players.get(curPlayerIndex).name)
-                .put("winningPlayer", winningPlayerName)
                 .put("players", pA);
+
+        if (!players.isEmpty() ) {
+            if (winningPlayerIndex >= 0) {
+                o.put("winningPlayer", players.get(winningPlayerIndex).name);
+            }
+
+            if (curPlayerIndex >= 0) {
+                o.put("curPlayer", players.get(curPlayerIndex).name);
+            }
+        }
+
+        return o;
     }
 }

@@ -2,15 +2,9 @@ package me.madmagic.webinterface.socket;
 
 import me.madmagic.detection.VisionRunner;
 import me.madmagic.game.GameInstance;
-import me.madmagic.game.ThrowVal;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class GameSocket implements WebSocketListener {
 
@@ -50,29 +44,10 @@ public class GameSocket implements WebSocketListener {
                 }
                 case "join" -> GameInstance.join(playerName);
                 case "leave" -> GameInstance.leave(playerName);
-                case "newGame" -> GameInstance.newGame();
+                case "newGame" -> GameInstance.newGame(o.optString("newGame", ""));
                 case "call" -> GameInstance.nextPlayer(playerName);
                 case "stoef" -> GameInstance.stoef(playerName);
                 case "accept" -> GameInstance.countThrow(playerName);
-                case "customCall" -> {
-                    String val = o.getString("customCall");
-                    String[] split = val.split(", ");
-
-                    ThrowVal throwVal;
-
-                    if (split.length > 1) {
-                        List<Integer> score = Arrays.stream(split)
-                                                .map(String::trim)
-                                                .map(Integer::parseInt)
-                                                .collect(Collectors.toCollection(ArrayList::new));
-
-                        throwVal = ThrowVal.fromScores(score);
-                    } else {
-                        throwVal = new ThrowVal(ThrowVal.ThrowType.REGULAR, Integer.parseInt(val));
-                    }
-
-                    GameInstance.countThrow(playerName, throwVal);
-                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -87,6 +62,7 @@ public class GameSocket implements WebSocketListener {
 
     @Override
     public void onWebSocketClose(int statusCode, String reason) {
+        System.out.println("closed: " + reason);
         SessionRegistry.removeSession(s);
         s = null;
     }

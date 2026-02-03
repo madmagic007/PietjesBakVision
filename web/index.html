@@ -30,7 +30,7 @@
 <div class="side-menu" id="sideMenu">
     <div onclick="sendWSAction('join')">Speel mee</div>
     <div onclick="sendWSAction('leave')">Verlaat</div>
-    <div onclick="sendWSAction('newGame')">Nieuw spel</div>
+    <div onclick="promptSendWS('Wie start er?:', 'newGame')">Nieuw spel</div>
 </div>
 <table id="tblThrow">
     <tr>
@@ -52,12 +52,11 @@
         <td id="fieldThrowCnt">1</td>
     </tr>
 </table>
-<div id="buttonsDiv">
+<form autocomplete="off" id="buttonsDiv">
     <button id="btnAccept" class="btnAction btnActionAny" onclick="sendWSAction('accept')" disabled>Nieuwe Worp</button>
     <button id="btnCall" class="btnAction btnActionAny" onclick="sendWSAction('call')" disabled>Call</button>
     <button id="btnStoef" class="btnAction" onclick="sendWSAction('stoef')" disabled>Stoef</button>
-    <button id="btnCustom" onclick="promptSendWS('Waarde:', 'customCall')">Custom</button>
-</div>
+</form>
 <table id="tblScore"></table>
 </body>
 </html>

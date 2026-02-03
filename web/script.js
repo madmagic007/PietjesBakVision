@@ -1,84 +1,105 @@
-const ws = new WebSocket("ws://" + window.location.host + "/ws/game");
+let ws;
 
-ws.onmessage = e => {
-    console.log("from server:", e.data);
-    let o = JSON.parse(e.data);
+const hamburger = document.getElementById('hamburger');
+const sideMenu = document.getElementById('sideMenu');
 
-    if ("detectionState" in o) {
-        let lbl = document.getElementById("detectionLabel")
-        let chk = document.getElementById("detection")
+function wsConnect() {
+    ws = new WebSocket("ws://" + window.location.host + "/ws/game");
 
-        if (o["detectionState"]) {
-            lbl.classList.add("detectionActive");
-            lbl.classList.remove("detectionInActive");
-            chk.checked = true;
-        } else {
-            lbl.classList.remove("detectionActive");
-            lbl.classList.add("detectionInActive");
-            chk.checked = false;
+    ws.onmessage = e => {
+        console.log("from server:", e.data);
+        let o = JSON.parse(e.data);
+
+        if ("detectionState" in o) {
+            let lbl = document.getElementById("detectionLabel")
+            let chk = document.getElementById("detection")
+
+            if (o["detectionState"]) {
+                lbl.classList.add("detectionActive");
+                lbl.classList.remove("detectionInActive");
+                chk.checked = true;
+            } else {
+                lbl.classList.remove("detectionActive");
+                lbl.classList.add("detectionInActive");
+                chk.checked = false;
+            }
         }
-    }
 
-    if ("throwVal" in o) {
-        let throwVal = o["throwVal"];
-        document.getElementById("fieldDetected").textContent = throwVal
-    }
-
-    if ("highestThisRound" in o) {
-        let highest = o["highestThisRound"]
-        document.getElementById("fieldHighest").textContent = highest
-    }
-
-    if ("maxThrowsThisRound" in o) {
-        let cnt = o["maxThrowsThisRound"];
-        document.getElementById("fieldThrowMax").textContent = cnt
-    }
-
-    let isSelfPlayer = false;
-    let curPlayer = "";
-    let winningPlayer = "";
-
-    if ("winningPlayer" in o) {
-        winningPlayer = o["winningPlayer"];
-    }
-
-    if ("curPlayer" in o) {
-        curPlayer = o["curPlayer"];
-        let ownPlayerName = document.getElementById('inputPlayer').value;
-
-        isSelfPlayer = curPlayer == ownPlayerName;
-
-        let btns = document.getElementsByClassName("btnActionAny");
-        Array.from(btns).forEach(btn => {
-            btn.disabled = !isSelfPlayer;
-        });
-    }
-
-    if ("curThrowCount" in o) {
-        let cnt = o["curThrowCount"];
-        document.getElementById("fieldThrowCnt").textContent = cnt;
-
-        let btn = document.getElementById("btnStoef");
-        if (cnt > 1 || !isSelfPlayer) {
-            btn.disabled = true;
-        } else if (isSelfPlayer) {
-            btn.disabled = false;
+        if ("throwVal" in o) {
+            let throwVal = o["throwVal"];
+            document.getElementById("fieldDetected").textContent = throwVal
         }
+
+        if ("highestThisRound" in o) {
+            let highest = o["highestThisRound"]
+            document.getElementById("fieldHighest").textContent = highest
+        }
+
+        if ("maxThrowsThisRound" in o) {
+            let cnt = o["maxThrowsThisRound"];
+            document.getElementById("fieldThrowMax").textContent = cnt
+        }
+
+        let isSelfPlayer = false;
+        let curPlayer = "";
+        let winningPlayer = "";
+
+        if ("winningPlayer" in o) {
+            winningPlayer = o["winningPlayer"];
+        }
+
+        if ("curPlayer" in o) {
+            curPlayer = o["curPlayer"];
+            let ownPlayerName = document.getElementById('inputPlayer').value;
+
+            isSelfPlayer = curPlayer == ownPlayerName;
+
+            let btns = document.getElementsByClassName("btnActionAny");
+            Array.from(btns).forEach(btn => {
+                btn.disabled = !isSelfPlayer;
+            });
+        }
+
+        if ("curThrowCount" in o) {
+            let cnt = o["curThrowCount"];
+            document.getElementById("fieldThrowCnt").textContent = cnt;
+
+            let btn = document.getElementById("btnStoef");
+            if (cnt > 1 || !isSelfPlayer) {
+                btn.disabled = true;
+            } else if (isSelfPlayer) {
+                btn.disabled = false;
+            }
+        }
+
+        if ("players" in o) {
+            setupScoreTable(o["players"], curPlayer, winningPlayer);
+        }
+    };
+
+    ws.onopen = e => {
+        ws.send("request");
     }
 
-    if ("players" in o) {
-        setupScoreTable(o["players"], curPlayer, winningPlayer);
-    }
-};
+    ws.onclose = () => {
+        setTimeout(wsConnect, 1000);
+    };
 
-ws.onopen = e => {
-    ws.send("request")
+    ws.onerror = (err) => {
+        console.error('WebSocket error', err);
+        ws.close();
+    };
 }
+
+wsConnect();
 
 function sendWS(json) {
     const nameInput = document.getElementById('inputPlayer');
     json.playerName = nameInput.value;
     ws.send(JSON.stringify(json));
+
+    hamburger.classList.remove('active');
+    sideMenu.classList.remove('active');
 }
 
 function sendWSAction(action) {
@@ -175,9 +196,6 @@ function setupScoreTable(players, curPlayer, winningPlayer) {
         table.appendChild(row);
     });
 }
-
-const hamburger = document.getElementById('hamburger');
-const sideMenu = document.getElementById('sideMenu');
 
 hamburger.addEventListener('click', () => {
     hamburger.classList.toggle('active');
