@@ -1,24 +1,79 @@
-const ws = new WebSocket("ws://localhost:8080/ws/game");
+const ws = new WebSocket("ws://" + window.location.host + "/ws/game");
 
 ws.onmessage = e => {
     console.log("from server:", e.data);
     let o = JSON.parse(e.data);
 
-    switch (o["action"]) {
-        case "detectionState":
-            let lbl = document.getElementById("detectionLabel")
+    if ("detectionState" in o) {
+        let lbl = document.getElementById("detectionLabel")
+        let chk = document.getElementById("detection")
 
-            if (o["detectionState"]) {
-                lbl.classList.add("detectionActive");
-                lbl.classList.remove("detectionInActive");
-            } else {
-                lbl.classList.remove("detectionActive");
-                lbl.classList.add("detectionInActive");
-            }
+        if (o["detectionState"]) {
+            lbl.classList.add("detectionActive");
+            lbl.classList.remove("detectionInActive");
+            chk.checked = true;
+        } else {
+            lbl.classList.remove("detectionActive");
+            lbl.classList.add("detectionInActive");
+            chk.checked = false;
+        }
+    }
 
-            break;
+    if ("throwVal" in o) {
+        let throwVal = o["throwVal"];
+        document.getElementById("fieldDetected").textContent = throwVal
+    }
+
+    if ("highestThisRound" in o) {
+        let highest = o["highestThisRound"]
+        document.getElementById("fieldHighest").textContent = highest
+    }
+
+    if ("maxThrowsThisRound" in o) {
+        let cnt = o["maxThrowsThisRound"];
+        document.getElementById("fieldThrowMax").textContent = cnt
+    }
+
+    let isSelfPlayer = false;
+    let curPlayer = "";
+    let winningPlayer = "";
+
+    if ("winningPlayer" in o) {
+        winningPlayer = o["winningPlayer"];
+    }
+
+    if ("curPlayer" in o) {
+        curPlayer = o["curPlayer"];
+        let ownPlayerName = document.getElementById('inputPlayer').value;
+
+        isSelfPlayer = curPlayer == ownPlayerName;
+
+        let btns = document.getElementsByClassName("btnActionAny");
+        Array.from(btns).forEach(btn => {
+            btn.disabled = !isSelfPlayer;
+        });
+    }
+
+    if ("curThrowCount" in o) {
+        let cnt = o["curThrowCount"];
+        document.getElementById("fieldThrowCnt").textContent = cnt;
+
+        let btn = document.getElementById("btnStoef");
+        if (cnt > 1 || !isSelfPlayer) {
+            btn.disabled = true;
+        } else if (isSelfPlayer) {
+            btn.disabled = false;
+        }
+    }
+
+    if ("players" in o) {
+        setupScoreTable(o["players"], curPlayer, winningPlayer);
     }
 };
+
+ws.onopen = e => {
+    ws.send("request")
+}
 
 function sendWS(json) {
     const nameInput = document.getElementById('inputPlayer');
@@ -40,7 +95,12 @@ function sendWSAction(action, value) {
     sendWS(o);
 }
 
-function setupTable(data) {
+function promptSendWS(question, action) {
+    let res = prompt(question);
+    sendWSAction(action, res);
+}
+
+function setupScoreTable(players, curPlayer, winningPlayer) {
     const table = document.getElementById('tblScore');
     table.innerHTML = '';
 
@@ -68,8 +128,15 @@ function setupTable(data) {
 
     table.appendChild(headerRow);
 
-    data.names.forEach(name => {
+    players.forEach(player => {
+        const name = player["name"];
         const row = document.createElement('tr');
+
+        if (name == winningPlayer) {
+            row.classList.add('winning');
+        } else {
+            row.classList.remove('winning');
+        }
 
         const nameCell = document.createElement('td');
         nameCell.textContent = name;
@@ -78,13 +145,13 @@ function setupTable(data) {
         row.appendChild(nameCell);
 
         const pointsCell = document.createElement('td');
-        pointsCell.textContent = '9';
+        pointsCell.textContent = player.points;
         pointsCell.id = 'points_' + name;
         pointsCell.classList.add('cellPoints');
         row.appendChild(pointsCell);
 
         const highestCell = document.createElement('td');
-        highestCell.textContent = '260';
+        highestCell.textContent = player.highestThisRound;
         highestCell.id = 'highest_' + name;
         highestCell.classList.add('cellHighest');
         row.appendChild(highestCell);
@@ -94,6 +161,15 @@ function setupTable(data) {
         statusCell.textContent = '';
         statusCell.id = 'status_' + name;
         statusCell.classList.add('cellStatus');
+
+        if (player["hasStoeffed"]) {
+            statusCell.classList.add("stoef");
+        }
+
+        if (curPlayer == name) {
+            statusCell.classList.add("curPlayer");
+        }
+
         row.appendChild(statusCell);
 
         table.appendChild(row);
@@ -107,9 +183,3 @@ hamburger.addEventListener('click', () => {
     hamburger.classList.toggle('active');
     sideMenu.classList.toggle('active');
 });
-
-const myData = {
-    names: ['PlayerA', 'PlayerB', 'PlayerC', "PlayerD"]
-};
-
-setupTable(myData);

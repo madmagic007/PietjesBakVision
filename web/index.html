@@ -7,6 +7,7 @@
 
     <script src="script.js" defer></script>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 <div id="headerBar">
@@ -27,14 +28,14 @@
     </label>
 </div>
 <div class="side-menu" id="sideMenu">
-    <a onclick="sendWSAction('join')">Speel mee</a>
-    <a onclick="sendWSAction('leave')">Verlaat</a>
-    <a onclick="sendWSAction('newGame')">Nieuw spel</a>
+    <div onclick="sendWSAction('join')">Speel mee</div>
+    <div onclick="sendWSAction('leave')">Verlaat</div>
+    <div onclick="sendWSAction('newGame')">Nieuw spel</div>
 </div>
 <table id="tblThrow">
     <tr>
         <th class="tblHeaderCurrent">Gedetecteerde worp:</th>
-        <th class="tblHeaderCurrent" id="fieldDetected">108</th>
+        <th class="tblHeaderCurrent" id="fieldDetected">0</th>
         <th></th>
         <td></td>
     </tr>
@@ -48,11 +49,15 @@
     </tr>
     <tr>
         <th>Worp #:</th>
-        <td id="fieldThrowCnt">0</td>
+        <td id="fieldThrowCnt">1</td>
     </tr>
 </table>
-<button id="btnCall" class="btnAction" onclick="sendWSAction('call')">call</button>
-<button id="btnStoef" class="btnAction" onclick="sendWSAction('stoef')">stoef</button>
+<div id="buttonsDiv">
+    <button id="btnAccept" class="btnAction btnActionAny" onclick="sendWSAction('accept')" disabled>Nieuwe Worp</button>
+    <button id="btnCall" class="btnAction btnActionAny" onclick="sendWSAction('call')" disabled>Call</button>
+    <button id="btnStoef" class="btnAction" onclick="sendWSAction('stoef')" disabled>Stoef</button>
+    <button id="btnCustom" onclick="promptSendWS('Waarde:', 'customCall')">Custom</button>
+</div>
 <table id="tblScore"></table>
 </body>
 </html>

@@ -1,65 +1,159 @@
 package me.madmagic.game;
 
 import me.madmagic.detection.VisionRunner;
+import me.madmagic.webinterface.socket.SessionRegistry;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.List;
 
 public class GameInstance {
 
-    private static final Map<String, Player> players = new LinkedHashMap<>();
+    private static final List<Player> players = Arrays.asList(
+            new Player("Speler1"),
+            new Player("Speler2"),
+            new Player("Speler3")
+    );
 
-    private static int roundHighest, roundMaxThrows, curThrow, player;
+    private static int maxThrowsThisRound = 3,
+                        curThrowCount = 1,
+                        curPlayerIndex = 0,
+                        roundStartIndex = 0,
+                        winningPlayerIndex = -1;
+
+    private static ThrowVal highestThisRound = ThrowVal.blank;
 
     public static void newGame() {
-        players.forEach((s, p) -> p.resetPoints());
+        players.forEach(Player::newGame);
         newRound();
-
-        player = 0;
     }
 
     public static void newRound() {
-        players.forEach((s, p) -> p.newRound());
+        maxThrowsThisRound = 3;
+        curThrowCount = 1;
+        winningPlayerIndex = -1;
+        highestThisRound = ThrowVal.blank;
+    }
 
-        roundHighest = 0;
-        roundMaxThrows = 3;
-        curThrow = 1;
+    public static void roundEnd() {
+        for (int i = 0; i < players.size(); i++) {
+            Player p = players.get(i);
+            p.roundEnd(winningPlayerIndex == i);
+        }
 
-        player = 0;
+        curPlayerIndex = winningPlayerIndex;
+        roundStartIndex = winningPlayerIndex;
+        newRound();
+    }
+
+    private static boolean playerExists(String playerName) {
+        for (Player player : players) {
+            if (player.name.equals(playerName)) return true;
+        }
+
+        return false;
     }
 
     public static void nextPlayer() {
-        player++;
+        System.out.println("next player");
 
-        if (player == players.size()) {
-            newRound();
+        curPlayerIndex = (curPlayerIndex +1) % players.size();
+        curThrowCount = 1;
+
+        if (curPlayerIndex == roundStartIndex) {
+            roundEnd();
         }
     }
 
     public static void join(String playerName) {
-        if (players.containsKey(playerName)) return;
+        if (playerExists(playerName)) return;
 
-        players.put(playerName, new Player());
-        //todo broadcast
+        players.add(new Player(playerName));
+
+        broadcastGame();
     }
 
     public static void leave(String playerName) {
-        if (!players.containsKey(playerName)) return;
+        int index = -1;
 
-        players.remove(playerName);
-        //todo broadcast
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i).name.equals(playerName)) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index < 0) return;
+
+        players.remove(index);
+        broadcastGame();
     }
 
-    public static void call(String playerName) {
-        if (curThrow == 3 || curThrow > roundMaxThrows) return;
+    public static void nextPlayer(String playerName) { // call on interface
+        maxThrowsThisRound = curThrowCount;
+        countThrow(playerName);
+    }
 
+    public static void countThrow(String playerName) {
         ThrowVal throwVal = VisionRunner.getCurrentThrow();
+        countThrow(playerName, throwVal);
+    }
 
-        curThrow++;
+    public static void countThrow(String playerName, ThrowVal throwVal) {
+        if (curThrowCount > maxThrowsThisRound ||
+                !players.get(curPlayerIndex).name.equals(playerName)) return;
+
+        if (throwVal.higherThan(highestThisRound)) {
+            winningPlayerIndex = curPlayerIndex;
+            highestThisRound = throwVal;
+        }
+
+        players.get(curPlayerIndex).checkThrow(throwVal);
+
+
+        curThrowCount++;
+
+        if (curThrowCount > maxThrowsThisRound)
+            nextPlayer();
+
+        broadcastGame();
     }
 
     public static void stoef(String playerName) {
-        if (curThrow != 1) return;
+        if (curThrowCount != 1 ||
+                !players.get(curPlayerIndex).name.equals(playerName)) return;
 
+        players.get(curPlayerIndex).stoef();
+        maxThrowsThisRound = 1;
+        countThrow(playerName);
+    }
+
+    public static void broadcastGame() {
+        JSONObject o = gameAsJson();
+        SessionRegistry.broadcastGames(o);
+    }
+
+    public static JSONObject gameAsJson() {
+        JSONArray pA = new JSONArray();
+
+        players.forEach(p -> {
+            JSONObject data = p.dataAsJson();
+            pA.put(data);
+        });
+
+        String winningPlayerName = "";
+        if (winningPlayerIndex >= 0) {
+            winningPlayerName = players.get(winningPlayerIndex).name;
+        }
+
+        return new JSONObject()
+                .put("highestThisRound", highestThisRound.scoreAsString())
+                .put("curThrowCount", curThrowCount)
+                .put("maxThrowsThisRound", maxThrowsThisRound)
+                .put("detectionState", VisionRunner.isRunning())
+                .put("curPlayer", players.get(curPlayerIndex).name)
+                .put("winningPlayer", winningPlayerName)
+                .put("players", pA);
     }
 }

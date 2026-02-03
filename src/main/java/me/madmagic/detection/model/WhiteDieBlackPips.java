@@ -15,22 +15,22 @@ public class WhiteDieBlackPips extends VisionModel {
     public WhiteDieBlackPips(String name) {
         super(name);
 
-        params.add("cropLeft", 0, 0, 2000);
-        params.add("cropRight", 0, 0, 2000);
-        params.add("blur", 19, 1, 30);
+        params.add("cropLeft", 800, 0, 2000);
+        params.add("cropRight", 800, 0, 2000);
+        params.add("blur", 21, 1, 30);
 
         params.add("contourMinCanny", 0, 0, 255);
         params.add("contourMaxCanny", 60, 0, 255);
         params.add("contourKernelSize", 7, 1, 20);
         params.add("contourMinArea", 15000, 0, 100000);
-        params.add("contourFrames", 10, 0, 20);
+        params.add("contourFrames", 3, 0, 20);
 
         params.add("blackHatKernelSize", 30, 1, 50);
-        params.add("blackHatThresh", 100, 0, 255);
+        params.add("blackHatThresh", 65, 0, 255);
 
         params.add("pipMinArea", 200, 0, 10000);
         params.add("pipMaxArea", 500, 0, 10000);
-        params.add("pipMinCircularity", 70, 0, 100);
+        params.add("pipMinCircularity", 75, 0, 100);
         params.add("pipMaxDist", 70, 0, 200);
     }
 
@@ -293,10 +293,10 @@ public class WhiteDieBlackPips extends VisionModel {
         blurSize.close();
         pipCenters.forEach(Pointer::close);
 
-        System.out.printf(
-                "cvtBlur: %.1f ms, dieContours: %.1f ms, pips: %.1f ms, pipCenters: %.1f ms, cluster and count: %.1f ms, network: %.1f ms,     \n",
-                (t1-t0)/1e6, (t2-t1)/1e6, (t3-t2)/1e6, (t4-t3)/1e6, (t5-t4)/1e6, (t6-t5)/1e6
-        );
+//        System.out.printf(
+//                "cvtBlur: %.1f ms, dieContours: %.1f ms, pips: %.1f ms, pipCenters: %.1f ms, cluster and count: %.1f ms, network: %.1f ms,     \n",
+//                (t1-t0)/1e6, (t2-t1)/1e6, (t3-t2)/1e6, (t4-t3)/1e6, (t5-t4)/1e6, (t6-t5)/1e6
+//        );
 
         return dieVals;
     }

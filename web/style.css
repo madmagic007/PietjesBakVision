@@ -3,6 +3,10 @@
     color: white;
 }
 
+html {
+    height: 100%
+}
+
 body {
     background-color: #001;
     padding: 0px;
@@ -41,8 +45,29 @@ button:hover {
     border-color: #49f
 }
 
-button:active, a:active {
+button:active:not([disabled]), .side-menu div:active {
     transform: translate3D(2px, 2px, 0);
+}
+
+button:disabled {
+    border-color: rgba(149, 149, 149, .3);
+}
+
+#buttonsDiv {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-column-gap: 30px;
+    grid-row-gap: 15px;
+    margin: 50px 20px 0 20px;
+}
+
+#btnCustom {
+    grid-column: 1 / -1;
+    height: 40px;
+}
+
+.btnAction {
+    height: 100px;
 }
 
 .inputWrapper {
@@ -100,14 +125,6 @@ button:active, a:active {
 .inputWrapper input:focus + #inputLabel + .focus-bg {
     transform: scaleX(1);
     transition: all .1s ease;
-}
-
-.btnAction {
-    height: 100px;
-    width: 40vw;
-    margin-left: 6vw;
-    position: relative;
-    top: 50px;
 }
 
 table {
@@ -194,7 +211,7 @@ table {
     z-index: 1000;
 }
 
-.side-menu a {
+.side-menu div {
     display: block;
     padding: 15px 25px;
     text-decoration: none;
@@ -202,10 +219,29 @@ table {
     transition: background 0.2s;
 }
 
-.side-menu a:hover {
+.side-menu div:hover {
     background-color: #039;
 }
 
 .side-menu.active {
     left: 0;
+}
+
+tr.winning > td {
+    color: gold !important;
+}
+
+td.stoef::before {
+    content: "😏";
+    margin-right: 4px;
+    font-weight: 900;
+    font-size: 2em;
+}
+
+td.curPlayer::after {
+    content: "\f522";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 2em;
+    margin-left: 4px;
 }

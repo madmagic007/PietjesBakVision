@@ -2,9 +2,15 @@ package me.madmagic.webinterface.socket;
 
 import me.madmagic.detection.VisionRunner;
 import me.madmagic.game.GameInstance;
+import me.madmagic.game.ThrowVal;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class GameSocket implements WebSocketListener {
 
@@ -15,6 +21,13 @@ public class GameSocket implements WebSocketListener {
     public void onWebSocketText(String message) {
         if (s == null || !s.isOpen()) return;
         System.out.println(message);
+
+        if (message.equals("request")) {
+            JSONObject resp = GameInstance.gameAsJson();
+            SessionRegistry.send(s, resp);
+
+            return;
+        }
 
         try {
             JSONObject o = new JSONObject(message);
@@ -31,7 +44,6 @@ public class GameSocket implements WebSocketListener {
                     }
 
                     JSONObject resp = new JSONObject()
-                            .put("action", "detectionState")
                             .put("detectionState", !VisionRunner.stopCalled);
 
                     SessionRegistry.broadcastGames(resp);
@@ -39,8 +51,28 @@ public class GameSocket implements WebSocketListener {
                 case "join" -> GameInstance.join(playerName);
                 case "leave" -> GameInstance.leave(playerName);
                 case "newGame" -> GameInstance.newGame();
-                case "call" -> GameInstance.call(playerName);
+                case "call" -> GameInstance.nextPlayer(playerName);
                 case "stoef" -> GameInstance.stoef(playerName);
+                case "accept" -> GameInstance.countThrow(playerName);
+                case "customCall" -> {
+                    String val = o.getString("customCall");
+                    String[] split = val.split(", ");
+
+                    ThrowVal throwVal;
+
+                    if (split.length > 1) {
+                        List<Integer> score = Arrays.stream(split)
+                                                .map(String::trim)
+                                                .map(Integer::parseInt)
+                                                .collect(Collectors.toCollection(ArrayList::new));
+
+                        throwVal = ThrowVal.fromScores(score);
+                    } else {
+                        throwVal = new ThrowVal(ThrowVal.ThrowType.REGULAR, Integer.parseInt(val));
+                    }
+
+                    GameInstance.countThrow(playerName, throwVal);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -51,7 +83,6 @@ public class GameSocket implements WebSocketListener {
     public void onWebSocketConnect(Session session) {
         s = session;
         SessionRegistry.addGameSession(s);
-        System.out.println("open");
     }
 
     @Override

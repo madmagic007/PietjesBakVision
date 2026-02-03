@@ -3,13 +3,13 @@ package me.madmagic.detection;
 import me.madmagic.Main;
 import me.madmagic.detection.model.VisionModel;
 import me.madmagic.game.ThrowVal;
+import me.madmagic.webinterface.socket.SessionRegistry;
 import org.bytedeco.opencv.global.opencv_videoio;
 import org.bytedeco.opencv.opencv_core.UMat;
 import org.bytedeco.opencv.opencv_videoio.VideoCapture;
 import org.bytedeco.opencv.opencv_videoio.VideoWriter;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.bytedeco.opencv.global.opencv_videoio.CAP_PROP_BUFFERSIZE;
@@ -18,9 +18,9 @@ public class VisionRunner {
 
     private static VisionModel model = VisionModel.models.get("WhiteDieBlackPips"); // default
     private static VideoCapture capture;
-    public static volatile boolean stopCalled = false;
+    public static volatile boolean stopCalled = true;
     private static volatile String newModel = "";
-    private static List<Integer> scores = new ArrayList<>();
+    private static ThrowVal throwVal;
 
     public static void start() {
         capture = new VideoCapture(Main.camIndex);
@@ -62,7 +62,15 @@ public class VisionRunner {
             newModel = "";
         }
 
-        scores = model.getDieScore(cameraFrame);
+        List<Integer> scores = model.getDieScore(cameraFrame);
+
+        if (scores.size() != 3) {
+            SessionRegistry.broadcastThrowVal("0");
+            return;
+        }
+
+        throwVal = ThrowVal.fromScores(scores);
+        SessionRegistry.broadcastThrowVal(throwVal.scoreAsString());
     }
 
     public static void updateModel(String modelName) {
@@ -84,6 +92,10 @@ public class VisionRunner {
     }
 
     public static ThrowVal getCurrentThrow() {
-        return ThrowVal.fromScores(scores);
+        return throwVal;
+    }
+
+    public static boolean isRunning() {
+        return !stopCalled;
     }
 }

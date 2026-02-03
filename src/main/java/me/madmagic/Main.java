@@ -4,7 +4,7 @@ import me.madmagic.webinterface.ServerInstance;
 
 public class Main {
 
-    public static int camIndex = 0;
+    public static int camIndex = 1;
 
     public static void main(String[] args) throws Exception {
         ServerInstance.init();

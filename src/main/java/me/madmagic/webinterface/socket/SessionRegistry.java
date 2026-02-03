@@ -21,31 +21,34 @@ public class SessionRegistry {
     private static final Set<Session> gameSessions = ConcurrentHashMap.newKeySet();
 
     public static void broadcastSettings(JSONObject settings) {
-        broadcast(settingSessions, settings.toString());
+        broadcast(settingSessions, settings);
     }
 
     public static void broadcastGames(JSONObject gameData) {
-        broadcast(gameSessions, gameData.toString());
+        broadcast(gameSessions, gameData);
     }
 
-    public static void broadcastImages() {
-        videoSessions.forEach(s -> {
-            try {
-                //s.getRemote().sendBytes();
-            } catch (Exception ignored) {
-                s.close();
-            }
-        });
-    }
-
-    private static void broadcast(Set<Session> sessions, String text) {
+    private static void broadcast(Set<Session> sessions, JSONObject o) {
         sessions.forEach(s -> {
-            try {
-                s.getRemote().sendString(text);
-            } catch (Exception ignored) {
-                s.close();
-            }
+            send(s, o);
         });
+    }
+
+    public static void broadcastThrowVal(String value) {
+        if (gameSessions.isEmpty() || value == null) return;
+
+        JSONObject o = new JSONObject()
+                .put("throwVal", value);
+
+        broadcastGames(o);
+    }
+
+    public static void send(Session s, JSONObject o) {
+        try {
+            s.getRemote().sendString(o.toString());
+        } catch (Exception ignored) {
+            s.close();
+        }
     }
 
     public static void broadcastMats(UMat... mats) {
