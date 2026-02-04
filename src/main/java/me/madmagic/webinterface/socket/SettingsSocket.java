@@ -29,7 +29,12 @@ public class SettingsSocket implements WebSocketListener {
         if (s == null || !s.isOpen()) return;
 
         if (message.equals("request")) {
-            SessionRegistry.broadcastSettings(getGlobalMessage());
+            SessionRegistry.send(s, getGlobalMessage());
+            return;
+        }
+
+        if (message.equals("ping")) {
+            SessionRegistry.send(s, "pong");
             return;
         }
 

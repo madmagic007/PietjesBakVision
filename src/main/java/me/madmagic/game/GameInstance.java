@@ -6,11 +6,20 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class GameInstance {
 
-    private static final List<Player> players = new ArrayList<>();
+    //private static final List<Player> players = new ArrayList<>();
+    private static final List<Player> finishedPlayers = new ArrayList<>();
+    private static final List<Player> playingPlayers = new ArrayList<>();
+    private static final List<Player> players = Arrays.asList(
+            new Player("Diego"),
+            new Player("Seth"),
+            new Player("Noa"),
+            new Player("Wout")
+    );
 
     private static int maxThrowsThisRound = 3,
                         curThrowCount = 1,
@@ -21,9 +30,12 @@ public class GameInstance {
     private static ThrowVal highestThisRound = ThrowVal.blank;
 
     public static void newGame(String startingPlayer) {
+        playingPlayers.addAll(players);
+
         if (!startingPlayer.isEmpty()) {
-            for (int i = 0; i < players.size(); i++) {
-                Player p = players.get(i);
+            for (int i = 0; i < playingPlayers.size(); i++) {
+                Player p = playingPlayers.get(i);
+
                 if (p.name.equals(startingPlayer)) {
                     roundStartIndex = i;
                     curPlayerIndex = i;
@@ -36,9 +48,10 @@ public class GameInstance {
             curPlayerIndex = 0;
         }
 
-        players.forEach(Player::newGame);
-        newRound();
+        finishedPlayers.clear();
+        playingPlayers.forEach(Player::newGame);
 
+        newRound();
         broadcastGame();
     }
 
@@ -50,13 +63,22 @@ public class GameInstance {
     }
 
     public static void roundEnd() {
-        for (int i = 0; i < players.size(); i++) {
-            Player p = players.get(i);
-            p.roundEnd(winningPlayerIndex == i);
+        for (int i = 0; i < playingPlayers.size(); i++) {
+            Player p = playingPlayers.get(i);
+
+            boolean finished = p.roundEnd(winningPlayerIndex == i);
+
+            if (finished) {
+                p.state = finishedPlayers.size() +1;
+                finishedPlayers.add(p);
+            }
         }
 
-        curPlayerIndex = winningPlayerIndex;
-        roundStartIndex = winningPlayerIndex;
+        playingPlayers.removeAll(finishedPlayers);
+
+        curPlayerIndex = (winningPlayerIndex) % playingPlayers.size();
+        roundStartIndex = curPlayerIndex;
+
         newRound();
     }
 
@@ -68,13 +90,13 @@ public class GameInstance {
         return false;
     }
 
-    public static void nextPlayer() {
-        System.out.println("next player");
+    public static void nextPlayer(boolean noAdd) {
+        int beforeIndex = curPlayerIndex;
 
-        curPlayerIndex = (curPlayerIndex +1) % players.size();
+        if (!noAdd) curPlayerIndex = (curPlayerIndex +1) % playingPlayers.size();
         curThrowCount = 1;
 
-        if (curPlayerIndex == roundStartIndex) {
+        if (curPlayerIndex == roundStartIndex && beforeIndex != curPlayerIndex) {
             roundEnd();
         }
     }
@@ -82,64 +104,100 @@ public class GameInstance {
     public static void join(String playerName) {
         if (playerExists(playerName)) return;
 
-        players.add(new Player(playerName));
+        Player p = new Player(playerName);
+        players.add(p);
+
+        if (curPlayerIndex != -1) playingPlayers.add(p);
 
         broadcastGame();
     }
 
     public static void leave(String playerName) {
-        int index = -1;
+        Player p = null;
 
-        for (int i = 0; i < players.size(); i++) {
-            if (players.get(i).name.equals(playerName)) {
-                index = i;
+        for (Player pl : players) {
+            if (pl.name.equals(playerName)) {
+                p = pl;
                 break;
             }
         }
 
-        if (index < 0) return;
+        if (p == null) return;
 
-        players.remove(index);
+        players.remove(p);
+        playingPlayers.remove(p);
+
         broadcastGame();
     }
 
-    public static void nextPlayer(String playerName) { // call on interface
-        maxThrowsThisRound = curThrowCount;
-        countThrow(playerName);
+    public static void acceptThrow(String playerName) {
+        ThrowVal throwVal = VisionRunner.getCurrentThrow();
+
+        if (countThrow(playerName, throwVal) == 1) {
+            maxThrowsThisRound = curThrowCount;
+            afterThrow();
+        }
+    }
+
+    public static void stoef(String playerName) {
+        if (curThrowCount != 1) return;
+
+        ThrowVal throwVal = VisionRunner.getCurrentThrow();
+
+        if (countThrow(playerName, throwVal) == 1) {
+            playingPlayers.get(curPlayerIndex).stoef();
+            maxThrowsThisRound = 1;
+
+            afterThrow();
+        }
     }
 
     public static void countThrow(String playerName) {
         ThrowVal throwVal = VisionRunner.getCurrentThrow();
-        countThrow(playerName, throwVal);
+
+        if (countThrow(playerName, throwVal) == 1) {
+            afterThrow();
+        }
     }
 
-    public static void countThrow(String playerName, ThrowVal throwVal) {
+    public static int countThrow(String playerName, ThrowVal throwVal) {
         if (curThrowCount > maxThrowsThisRound ||
-                !players.get(curPlayerIndex).name.equals(playerName)) return;
+                !playingPlayers.get(curPlayerIndex).name.equals(playerName)) return 0;
+
+        Player p = playingPlayers.get(curPlayerIndex);
+
+        if (throwVal.type().equals(ThrowVal.ThrowType.DRIE_APEN)) {
+            if (p.hasDecrementedOnce) {
+                p.state = finishedPlayers.size() + 1;
+            } else {
+                p.state = -1;
+            }
+
+            p.points = 0;
+            playingPlayers.remove(p);
+
+            nextPlayer(true);
+            broadcastGame();
+
+            return -1;
+        }
 
         if (throwVal.higherThan(highestThisRound)) {
             winningPlayerIndex = curPlayerIndex;
             highestThisRound = throwVal;
         }
 
-        players.get(curPlayerIndex).checkThrow(throwVal);
+        p.checkThrow(throwVal);
 
-
-        curThrowCount++;
-
-        if (curThrowCount > maxThrowsThisRound)
-            nextPlayer();
-
-        broadcastGame();
+        return 1;
     }
 
-    public static void stoef(String playerName) {
-        if (curThrowCount != 1 ||
-                !players.get(curPlayerIndex).name.equals(playerName)) return;
+    private static void afterThrow() {
+        curThrowCount++;
+        if (curThrowCount > maxThrowsThisRound)
+            nextPlayer(false);
 
-        players.get(curPlayerIndex).stoef();
-        maxThrowsThisRound = 1;
-        countThrow(playerName);
+        broadcastGame();
     }
 
     public static void broadcastGame() {
@@ -164,11 +222,11 @@ public class GameInstance {
 
         if (!players.isEmpty() ) {
             if (winningPlayerIndex >= 0) {
-                o.put("winningPlayer", players.get(winningPlayerIndex).name);
+                o.put("winningPlayer", playingPlayers.get(winningPlayerIndex).name);
             }
 
             if (curPlayerIndex >= 0) {
-                o.put("curPlayer", players.get(curPlayerIndex).name);
+                o.put("curPlayer", playingPlayers.get(curPlayerIndex).name);
             }
         }
 

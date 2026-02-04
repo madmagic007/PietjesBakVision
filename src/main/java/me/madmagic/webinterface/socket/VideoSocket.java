@@ -8,6 +8,13 @@ public class VideoSocket implements WebSocketListener {
     private volatile Session s;
 
     @Override
+    public void onWebSocketText(String message) {
+        if (message.equals("ping")) {
+            SessionRegistry.send(s, "pong");
+        }
+    }
+
+    @Override
     public void onWebSocketConnect(Session session) {
         s = session;
         SessionRegistry.addVideoSession(s);

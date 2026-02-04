@@ -145,7 +145,7 @@ table {
     top: 100px;
 }
 
-.cellName, .cellPoints, .cellHighest {
+.cellName, .cellPoints, .cellHighest, .cellStatus {
     width: 95px;
     text-align: center;
 }
@@ -239,7 +239,15 @@ td.stoef::before {
 }
 
 td.curPlayer::after {
-    content: "\f522";
+    content: "\f522" !important;
+}
+
+td.dead::after {
+    content: "\f54c" !important;
+}
+
+td.cellStatus::after {
+    content: var(--status-content, "");
     font-family: "Font Awesome 6 Free";
     font-weight: 900;
     font-size: 2em;

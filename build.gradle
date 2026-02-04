@@ -1,5 +1,7 @@
 plugins {
     id 'java'
+    id 'org.hidetake.ssh' version '2.12.0'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 repositories {
@@ -15,4 +17,65 @@ dependencies {
     implementation "org.eclipse.jetty.websocket:websocket-servlet:11.0.17"
 
     implementation "org.json:json:20251224"
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    manifest {
+        attributes(
+                'Main-Class': 'me.madmagic.Main',
+                'Class-Path': "${project.name}-javacv.jar"
+        )
+    }
+
+    from {
+        configurations.runtimeClasspath.filter { file ->
+            !file.path.contains("org.bytedeco")
+        }.collect { file ->
+            file.isDirectory() ? file : zipTree(file)
+        }
+    } {
+        exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+    }
+
+    destinationDirectory = project.rootDir
+}
+
+tasks.register("compileJavacv", Jar) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    archiveClassifier.set("javacv")
+
+    from {
+        configurations.runtimeClasspath.filter { file ->
+            file.path.contains("org.bytedeco")
+        }.collect { file ->
+            file.isDirectory() ? file : zipTree(file)
+        }
+    } {
+        exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+    }
+
+    destinationDirectory = project.rootDir
+}
+
+remotes {
+    rb5 {
+        host = 'rb5.local'
+        user = 'madmagic'
+        identity = file("${System.getProperty("user.home")}/.ssh/id_ed25519")
+    }
+}
+
+tasks.register('FTPUpload') {
+    dependsOn tasks.named('jar')
+
+    doLast {
+        def jarFile = tasks.named('jar').get().archiveFile.get().asFile
+        ssh.run {
+            session(remotes.rb5) {
+                put from: jarFile, into: '/home/madmagic/jars/PietjesbakVision/'
+            }
+        }
+    }
 }

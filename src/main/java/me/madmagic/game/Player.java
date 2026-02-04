@@ -4,11 +4,11 @@ import org.json.JSONObject;
 
 public class Player {
 
-    private int points;
+    public int points, state;
     private ThrowVal highestThisRound;
     public final String name;
-    private boolean hasStoeffed = false,
-                    hasDecrementedOnce = false;
+    private boolean hasStoeffed = false;
+    public boolean hasDecrementedOnce = false;
 
     public Player(String name) {
         this.name = name;
@@ -17,10 +17,13 @@ public class Player {
     }
 
     public void newGame() {
-        points = 9;
+        roundEnd(false);
+
+        points = 2;
+        state = 0;
     }
 
-    public void roundEnd(boolean won) {
+    public boolean roundEnd(boolean won) {
         int pointsToSubtract = 0;
 
         if (won) {
@@ -35,9 +38,10 @@ public class Player {
             }
         }
 
-        points -= pointsToSubtract;
         highestThisRound = ThrowVal.blank;
         hasStoeffed = false;
+
+        return subtractPoints(pointsToSubtract);
     }
 
     public void checkThrow(ThrowVal throwVal) {
@@ -46,6 +50,7 @@ public class Player {
     }
 
     public boolean subtractPoints(int amt) {
+        hasDecrementedOnce = amt > 0;
         points -= amt;
 
         if (points <= 0) {
@@ -59,14 +64,11 @@ public class Player {
         hasStoeffed = true;
     }
 
-    boolean shouldThrow() {
-        return points > 0;
-    }
-
     public JSONObject dataAsJson() {
         return new JSONObject()
                 .put("name", name)
                 .put("points", points)
+                .put("state", state)
                 .put("hasStoeffed", hasStoeffed)
                 .put("highestThisRound", highestThisRound.scoreAsString());
     }

@@ -21,7 +21,7 @@ public class WhiteDieBlackPips extends VisionModel {
 
         params.add("contourMinCanny", 0, 0, 255);
         params.add("contourMaxCanny", 60, 0, 255);
-        params.add("contourKernelSize", 7, 1, 20);
+        params.add("contourKernelSize", 9, 1, 20);
         params.add("contourMinArea", 15000, 0, 100000);
         params.add("contourFrames", 3, 0, 20);
 
@@ -31,7 +31,7 @@ public class WhiteDieBlackPips extends VisionModel {
         params.add("pipMinArea", 200, 0, 10000);
         params.add("pipMaxArea", 500, 0, 10000);
         params.add("pipMinCircularity", 75, 0, 100);
-        params.add("pipMaxDist", 70, 0, 200);
+        params.add("pipMaxDist", 68, 0, 200);
     }
 
     private final UMat visMat = new UMat();

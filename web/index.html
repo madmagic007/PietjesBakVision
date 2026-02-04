@@ -53,9 +53,9 @@
     </tr>
 </table>
 <form autocomplete="off" id="buttonsDiv">
-    <button id="btnAccept" class="btnAction btnActionAny" onclick="sendWSAction('accept')" disabled>Nieuwe Worp</button>
-    <button id="btnCall" class="btnAction btnActionAny" onclick="sendWSAction('call')" disabled>Call</button>
-    <button id="btnStoef" class="btnAction" onclick="sendWSAction('stoef')" disabled>Stoef</button>
+    <button type="button" id="btnNew" class="btnAction btnActionAny" onclick="sendWSAction('newThrow')" disabled>Nieuwe Worp</button>
+    <button type="button" id="btnStop" class="btnAction btnActionAny" onclick="sendWSAction('stop')" disabled>Stop</button>
+    <button type="button" id="btnStoef" class="btnAction" onclick="sendWSAction('stoef')" disabled>Stoef</button>
 </form>
 <table id="tblScore"></table>
 </body>

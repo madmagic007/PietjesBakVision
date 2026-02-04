@@ -14,7 +14,6 @@ public class GameSocket implements WebSocketListener {
     @Override
     public void onWebSocketText(String message) {
         if (s == null || !s.isOpen()) return;
-        System.out.println(message);
 
         if (message.equals("request")) {
             JSONObject resp = GameInstance.gameAsJson();
@@ -22,6 +21,13 @@ public class GameSocket implements WebSocketListener {
 
             return;
         }
+
+        if (message.equals("ping")) {
+            SessionRegistry.send(s, "pong");
+            return;
+        }
+
+        System.out.println(message);
 
         try {
             JSONObject o = new JSONObject(message);
@@ -45,9 +51,9 @@ public class GameSocket implements WebSocketListener {
                 case "join" -> GameInstance.join(playerName);
                 case "leave" -> GameInstance.leave(playerName);
                 case "newGame" -> GameInstance.newGame(o.optString("newGame", ""));
-                case "call" -> GameInstance.nextPlayer(playerName);
+                case "newThrow" -> GameInstance.countThrow(playerName);
+                case "stop" -> GameInstance.acceptThrow(playerName);
                 case "stoef" -> GameInstance.stoef(playerName);
-                case "accept" -> GameInstance.countThrow(playerName);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -56,6 +62,7 @@ public class GameSocket implements WebSocketListener {
 
     @Override
     public void onWebSocketConnect(Session session) {
+        System.out.println("connected");
         s = session;
         SessionRegistry.addGameSession(s);
     }

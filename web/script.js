@@ -1,13 +1,20 @@
 let ws;
+let reconnectTimer;
 
 const hamburger = document.getElementById('hamburger');
 const sideMenu = document.getElementById('sideMenu');
 
 function wsConnect() {
+    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+        return;
+    }
+
     ws = new WebSocket("ws://" + window.location.host + "/ws/game");
 
     ws.onmessage = e => {
+        if (e.data == "pong") return;
         console.log("from server:", e.data);
+
         let o = JSON.parse(e.data);
 
         if ("detectionState" in o) {
@@ -30,19 +37,21 @@ function wsConnect() {
             document.getElementById("fieldDetected").textContent = throwVal
         }
 
+        let isSelfPlayer = false;
+        let curPlayer = "";
+        let winningPlayer = "";
+        let maxThrows = -1;
+        let highest = 0;
+
         if ("highestThisRound" in o) {
-            let highest = o["highestThisRound"]
+            highest = o["highestThisRound"]
             document.getElementById("fieldHighest").textContent = highest
         }
 
         if ("maxThrowsThisRound" in o) {
-            let cnt = o["maxThrowsThisRound"];
-            document.getElementById("fieldThrowMax").textContent = cnt
+            maxThrows = o["maxThrowsThisRound"];
+            document.getElementById("fieldThrowMax").textContent = maxThrows
         }
-
-        let isSelfPlayer = false;
-        let curPlayer = "";
-        let winningPlayer = "";
 
         if ("winningPlayer" in o) {
             winningPlayer = o["winningPlayer"];
@@ -58,17 +67,28 @@ function wsConnect() {
             Array.from(btns).forEach(btn => {
                 btn.disabled = !isSelfPlayer;
             });
+        } else if ("curThrowCount" in o) { // just need anything else
+            let btns = document.getElementsByClassName("btnActionAny");
+            Array.from(btns).forEach(btn => {
+                btn.disabled = true;
+            });
         }
 
         if ("curThrowCount" in o) {
             let cnt = o["curThrowCount"];
             document.getElementById("fieldThrowCnt").textContent = cnt;
 
-            let btn = document.getElementById("btnStoef");
-            if (cnt > 1 || !isSelfPlayer) {
-                btn.disabled = true;
-            } else if (isSelfPlayer) {
-                btn.disabled = false;
+            let stoef = document.getElementById("btnStoef");
+            let newThrow = document.getElementById("btnNew");
+
+            if (cnt > 1 || !isSelfPlayer || highest != 0) {
+                stoef.disabled = true;
+            } else if (isSelfPlayer && maxThrows > 1) {
+                stoef.disabled = false;
+            }
+
+            if (cnt >= maxThrows) {
+                newThrow.disabled = true;
             }
         }
 
@@ -79,19 +99,27 @@ function wsConnect() {
 
     ws.onopen = e => {
         ws.send("request");
+
+        if (reconnectTimer) {
+            clearTimeout(reconnectTimer);
+            reconnectTimer = null;
+        }
     }
 
     ws.onclose = () => {
-        setTimeout(wsConnect, 1000);
-    };
-
-    ws.onerror = (err) => {
-        console.error('WebSocket error', err);
-        ws.close();
+        if (!reconnectTimer) {
+            reconnectTimer = setTimeout(wsConnect, 1000);
+        }
     };
 }
 
 wsConnect();
+
+setInterval(() => {
+    if (ws.readyState === WebSocket.OPEN) {
+        ws.send('ping');
+    }
+}, 5000);
 
 function sendWS(json) {
     const nameInput = document.getElementById('inputPlayer');
@@ -189,6 +217,15 @@ function setupScoreTable(players, curPlayer, winningPlayer) {
 
         if (curPlayer == name) {
             statusCell.classList.add("curPlayer");
+        }
+
+        if ("state" in player) {
+            let state = player["state"];
+
+            if (state == -1) statusCell.classList.add("dead");
+            else if (state > 0){
+                statusCell.style.setProperty('--status-content', `"\\f521     ${state}"`);
+            }
         }
 
         row.appendChild(statusCell);

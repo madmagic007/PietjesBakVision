@@ -44,8 +44,12 @@ public class SessionRegistry {
     }
 
     public static void send(Session s, JSONObject o) {
+        send(s, o.toString());
+    }
+
+    public static void send(Session s, String msg) {
         try {
-            s.getRemote().sendString(o.toString());
+            s.getRemote().sendString(msg);
         } catch (Exception ignored) {
             s.close();
         }

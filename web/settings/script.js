@@ -1,4 +1,8 @@
-const ws = new WebSocket("ws://localhost:8080/ws/settings");
+let settingsWs;
+let videoWs;
+
+let settingsReconnectTimer;
+let videoReconnectTimer;
 
 const slidersDiv = document.getElementById("sliders")
 const container = document.createElement("div");
@@ -7,14 +11,41 @@ slidersDiv.appendChild(container);
 let currentModel = null;
 const controlMap = {};
 
-ws.onopen = () => {
-    ws.send("request");
-};
+function settingsConnect() {
+    if (settingsWs && (settingsWs.readyState === WebSocket.OPEN || settingsWs.readyState === WebSocket.CONNECTING)) {
+        return;
+    }
 
-ws.onmessage = e => {
-    console.log("from server:", e.data);
-    updateUI(e.data);
-};
+    settingsWs = new WebSocket("ws://" + window.location.host + "/ws/settings");
+
+    settingsWs.onopen = () => {
+        settingsWs.send("request");
+
+        if (settingsReconnectTimer) {
+            clearTimeout(settingsReconnectTimer);
+            settingsReconnectTimer = null;
+        }
+    };
+
+    settingsWs.onclose = () => {
+        if (!settingsReconnectTimer) {
+            settingsReconnectTimer = setTimeout(settingsConnect, 1000);
+        }
+    };
+
+    settingsWs.onmessage = e => {
+        if (e.data == "pong") return;
+        console.log("from server:", e.data);
+        updateUI(e.data);
+    };
+}
+settingsConnect();
+
+setInterval(() => {
+    if (settingsWs.readyState === WebSocket.OPEN) {
+        settingsWs.send("ping");
+    }
+}, 5000);
 
 function reportValue(model, key, value) {
     let msg = {
@@ -24,7 +55,7 @@ function reportValue(model, key, value) {
         value: value
     };
 
-    ws.send(JSON.stringify(msg));
+    settingsWs.send(JSON.stringify(msg));
 }
 
 function sanitizeValue(val, min, max) {
@@ -138,37 +169,53 @@ function updateUI(message) {
 const canvasesContainer = document.getElementById("mats");
 const canvases = [];
 
-let latestFrame = null;
+let availableFrame = null;
 let rendering = false;
 
-let msgCount = 0;
-let frameCount = 0;
-let startTime = performance.now();
+function videoConnect() {
+    videoWs = new WebSocket("ws://" + window.location.host + "/ws/video");
+    videoWs.binaryType = "arraybuffer";
 
-const matWs = new WebSocket("ws://localhost:8080/ws/video");
-matWs.binaryType = "arraybuffer";
-matWs.onmessage = e => {
-    msgCount++;
-    latestFrame = e.data;
-    if (!rendering) renderFrames();
-};
+    videoWs.onmessage = e => {
+        if (!(e.data instanceof ArrayBuffer)) return;
+
+        availableFrame = e.data;
+        if (!rendering) renderFrames();
+    };
+
+    videoWs.onopen = e => {
+        if (videoReconnectTimer) {
+            clearTimeout(videoReconnectTimer);
+            videoReconnectTimer = null;
+        }
+    }
+
+    videoWs.onclose = () => {
+        if (!videoReconnectTimer) {
+            videoReconnectTimer = setTimeout(videoConnect, 1000);
+        }
+    };
+}
+videoConnect();
+
+setInterval(() => {
+    if (videoWs.readyState === WebSocket.OPEN) {
+        videoWs.send("ping");
+    }
+}, 5000);
 
 function renderFrames() {
-    if (!latestFrame) return;
+    const e = availableFrame;
+    if (!e) return;
+
+    availableFrame = null;
     rendering = true;
-
-    const e = latestFrame;
-    latestFrame = null;
-
-    const t0 = performance.now();
 
     const dv = new DataView(e);
     let offset = 0;
 
     const count = dv.getInt32(offset);
     offset += 4;
-
-    let matsProcessed = 0;
 
     for (let i = 0; i < count; i++) {
         const imgLen = dv.getInt32(offset);
@@ -180,7 +227,7 @@ function renderFrames() {
         const tDecodeStart = performance.now();
         createImageBitmap(new Blob([imgBytes], { type: "image/jpeg" })).then(bitmap => {
             const tDecodeEnd = performance.now();
-            // create canvas if needed
+
             let ctx = canvases[i];
             if (!ctx) {
                 const canvas = document.createElement("canvas");
@@ -194,26 +241,9 @@ function renderFrames() {
             ctx.canvas.height = bitmap.height;
             ctx.drawImage(bitmap, 0, 0);
             const tDrawEnd = performance.now();
-
-            matsProcessed++;
-            if (matsProcessed === count) {
-                // frame fully rendered
-                const t1 = performance.now();
-                frameCount++;
-
-                // log stats every second
-                if (t1 - startTime >= 1000) {
-                    console.log(`Msgs/sec: ${msgCount}, Frames/sec: ${frameCount}`);
-                    msgCount = 0;
-                    frameCount = 0;
-                    startTime = t1;
-                }
-
-                console.log(`Frame render duration: total=${(t1-t0).toFixed(1)}ms, decode=${(tDecodeEnd-tDecodeStart).toFixed(1)}ms, draw=${(tDrawEnd-tDrawStart).toFixed(1)}ms`);
-
-                rendering = false;
-                if (latestFrame) renderFrame();
-            }
         });
     }
+
+    if (availableFrame) renderFrames();
+    rendering = false;
 };
