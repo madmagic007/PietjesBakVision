@@ -293,10 +293,10 @@ public class WhiteDieBlackPips extends VisionModel {
         blurSize.close();
         pipCenters.forEach(Pointer::close);
 
-//        System.out.printf(
-//                "cvtBlur: %.1f ms, dieContours: %.1f ms, pips: %.1f ms, pipCenters: %.1f ms, cluster and count: %.1f ms, network: %.1f ms,     \n",
-//                (t1-t0)/1e6, (t2-t1)/1e6, (t3-t2)/1e6, (t4-t3)/1e6, (t5-t4)/1e6, (t6-t5)/1e6
-//        );
+        System.out.printf(
+                "cvtBlur: %.1f ms, dieContours: %.1f ms, pips: %.1f ms, pipCenters: %.1f ms, cluster and count: %.1f ms, network: %.1f ms,     \n",
+                (t1-t0)/1e6, (t2-t1)/1e6, (t3-t2)/1e6, (t4-t3)/1e6, (t5-t4)/1e6, (t6-t5)/1e6
+        );
 
         return dieVals;
     }

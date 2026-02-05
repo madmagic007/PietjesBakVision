@@ -19,7 +19,7 @@ public class Player {
     public void newGame() {
         roundEnd(false);
 
-        points = 2;
+        points = 9;
         state = 0;
     }
 

@@ -6,20 +6,19 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class GameInstance {
 
-    //private static final List<Player> players = new ArrayList<>();
+    private static final List<Player> players = new ArrayList<>();
     private static final List<Player> finishedPlayers = new ArrayList<>();
     private static final List<Player> playingPlayers = new ArrayList<>();
-    private static final List<Player> players = Arrays.asList(
-            new Player("Diego"),
-            new Player("Seth"),
-            new Player("Noa"),
-            new Player("Wout")
-    );
+//    private static final List<Player> players = Arrays.asList(
+//            new Player("Diego"),
+//            new Player("Seth"),
+//            new Player("Noa"),
+//            new Player("Wout")
+//    );
 
     private static int maxThrowsThisRound = 3,
                         curThrowCount = 1,
@@ -30,6 +29,7 @@ public class GameInstance {
     private static ThrowVal highestThisRound = ThrowVal.blank;
 
     public static void newGame(String startingPlayer) {
+        playingPlayers.clear();
         playingPlayers.addAll(players);
 
         if (!startingPlayer.isEmpty()) {

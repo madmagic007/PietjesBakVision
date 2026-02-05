@@ -1,7 +1,11 @@
 plugins {
     id 'java'
     id 'org.hidetake.ssh' version '2.12.0'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_24
+    targetCompatibility = JavaVersion.VERSION_24
 }
 
 repositories {
@@ -72,6 +76,19 @@ tasks.register('FTPUpload') {
 
     doLast {
         def jarFile = tasks.named('jar').get().archiveFile.get().asFile
+        ssh.run {
+            session(remotes.rb5) {
+                put from: jarFile, into: '/home/madmagic/jars/PietjesbakVision/'
+            }
+        }
+    }
+}
+
+tasks.register('LibFTPUpload') {
+    dependsOn tasks.named('compileJavacv')
+
+    doLast {
+        def jarFile = tasks.named('compileJavacv').get().archiveFile.get().asFile
         ssh.run {
             session(remotes.rb5) {
                 put from: jarFile, into: '/home/madmagic/jars/PietjesbakVision/'
