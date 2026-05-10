@@ -10,6 +10,12 @@ java {
 
 repositories {
     mavenCentral()
+    maven {
+        url = uri("https://jitpack.io")
+        content {
+            includeGroup "com.github.weliem.blessed-bluez"
+        }
+    }
 }
 
 dependencies {
@@ -21,6 +27,8 @@ dependencies {
     implementation "org.eclipse.jetty.websocket:websocket-servlet:11.0.17"
 
     implementation "org.json:json:20251224"
+    implementation "com.github.weliem.blessed-bluez:blessed:0.64"
+    implementation "com.github.hypfvieh:dbus-java-transport-native-unixsocket:4.3.2"
 }
 
 jar {
