@@ -1,9 +1,9 @@
 package me.madmagic.webinterface;
 
-import jakarta.servlet.http.HttpServlet;
+import me.madmagic.webinterface.socket.BleSettingsSocket;
 import me.madmagic.webinterface.socket.GameSocket;
-import me.madmagic.webinterface.socket.SettingsSocket;
 import me.madmagic.webinterface.socket.VideoSocket;
+import me.madmagic.webinterface.socket.VisionSettingsSocket;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -11,8 +11,6 @@ import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerI
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 
 public class ServerInstance {
 
@@ -34,16 +32,17 @@ public class ServerInstance {
 
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setResourceBase(webPath);
+        context.setWelcomeFiles(new String[] { "index.html" });
+        context.addServlet(DefaultServlet.class, "/");
 
         JettyWebSocketServletContainerInitializer.configure(
                 context, (sc, c) -> {
-                    c.addMapping("/ws/settings", (_, _) -> new SettingsSocket());
+                    c.addMapping("/ws/visionSettings", (_, _) -> new VisionSettingsSocket());
+                    c.addMapping("/ws/bleSettings", (_, _) -> new BleSettingsSocket());
                     c.addMapping("/ws/video", (_, _) -> new VideoSocket());
                     c.addMapping("/ws/game", (_, _) -> new GameSocket());
                 }
         );
-
-        dests.forEach((d, c) -> context.addServlet(c, d));
 
         server.setHandler(context);
         server.start();
@@ -54,9 +53,4 @@ public class ServerInstance {
     public static void init() throws Exception {
         init(false);
     }
-
-    private static final Map<String, Class<? extends HttpServlet>> dests = new HashMap<>() {{
-        put("/", DefaultServlet.class);
-        put("/settings", DefaultServlet.class);
-    }};
 }

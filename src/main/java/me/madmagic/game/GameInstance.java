@@ -1,5 +1,6 @@
 package me.madmagic.game;
 
+import me.madmagic.ble.BleHandler;
 import me.madmagic.detection.VisionRunner;
 import me.madmagic.webinterface.socket.SessionRegistry;
 import org.json.JSONArray;
@@ -13,12 +14,6 @@ public class GameInstance {
     private static final List<Player> players = new ArrayList<>();
     private static final List<Player> finishedPlayers = new ArrayList<>();
     private static final List<Player> playingPlayers = new ArrayList<>();
-//    private static final List<Player> players = Arrays.asList(
-//            new Player("Diego"),
-//            new Player("Seth"),
-//            new Player("Noa"),
-//            new Player("Wout")
-//    );
 
     private static int maxThrowsThisRound = 3,
                         curThrowCount = 1,
@@ -27,6 +22,7 @@ public class GameInstance {
                         winningPlayerIndex = -1;
 
     private static ThrowVal highestThisRound = ThrowVal.blank;
+    public static ThrowVal currentThrow = ThrowVal.blank;
 
     public static void newGame(String startingPlayer) {
         playingPlayers.clear();
@@ -130,10 +126,13 @@ public class GameInstance {
         broadcastGame();
     }
 
-    public static void acceptThrow(String playerName) {
-        ThrowVal throwVal = VisionRunner.getCurrentThrow();
+    public static void setThrow(ThrowVal throwVal) {
+        currentThrow = throwVal;
+        SessionRegistry.broadcastThrowVal(throwVal.scoreAsString());
+    }
 
-        if (countThrow(playerName, throwVal) == 1) {
+    public static void acceptThrow(String playerName) {
+        if (countThrow(playerName, currentThrow) == 1) {
             maxThrowsThisRound = curThrowCount;
             afterThrow();
         }
@@ -142,9 +141,7 @@ public class GameInstance {
     public static void stoef(String playerName) {
         if (curThrowCount != 1) return;
 
-        ThrowVal throwVal = VisionRunner.getCurrentThrow();
-
-        if (countThrow(playerName, throwVal) == 1) {
+        if (countThrow(playerName, currentThrow) == 1) {
             playingPlayers.get(curPlayerIndex).stoef();
             maxThrowsThisRound = 1;
 
@@ -153,9 +150,7 @@ public class GameInstance {
     }
 
     public static void countThrow(String playerName) {
-        ThrowVal throwVal = VisionRunner.getCurrentThrow();
-
-        if (countThrow(playerName, throwVal) == 1) {
+        if (countThrow(playerName, currentThrow) == 1) {
             afterThrow();
         }
     }
@@ -217,7 +212,9 @@ public class GameInstance {
                 .put("highestThisRound", highestThisRound.scoreAsString())
                 .put("curThrowCount", curThrowCount)
                 .put("maxThrowsThisRound", maxThrowsThisRound)
-                .put("detectionState", VisionRunner.isRunning())
+                .put("bleConnected", BleHandler.connected)
+                .put("bleRunning", BleHandler.running)
+                .put("visionRunning", VisionRunner.isRunning())
                 .put("players", pA);
 
         if (!players.isEmpty() ) {

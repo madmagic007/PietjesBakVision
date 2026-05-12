@@ -39,7 +39,7 @@ public record ThrowVal(ThrowType type, int summedScore) implements Comparable<Th
     }
 
     public static ThrowVal fromScores(List<Integer> scores) {
-        if (scores.size() != 3) return null;
+        if (scores.size() != 3) return ThrowVal.blank;
 
         List<Integer> sorted = scores.stream().sorted().toList();
         HashSet<Integer> unique = new HashSet<>(scores);

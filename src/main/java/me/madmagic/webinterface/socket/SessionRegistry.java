@@ -16,12 +16,17 @@ import static org.bytedeco.opencv.global.opencv_imgcodecs.imencode;
 
 public class SessionRegistry {
 
-    private static final Set<Session> settingSessions = ConcurrentHashMap.newKeySet();
+    private static final Set<Session> visionSettingSessions = ConcurrentHashMap.newKeySet();
+    private static final Set<Session> bleSettingSessions = ConcurrentHashMap.newKeySet();
     private static final Set<Session> videoSessions = ConcurrentHashMap.newKeySet();
     private static final Set<Session> gameSessions = ConcurrentHashMap.newKeySet();
 
-    public static void broadcastSettings(JSONObject settings) {
-        broadcast(settingSessions, settings);
+    public static void broadcastVisionSettings(JSONObject settings) {
+        broadcast(visionSettingSessions, settings);
+    }
+
+    public static void broadcastBleSettings(JSONObject settings) {
+        broadcast(bleSettingSessions, settings);
     }
 
     public static void broadcastGames(JSONObject gameData) {
@@ -97,8 +102,12 @@ public class SessionRegistry {
         });
     }
 
-    public static void addSettingSession(Session session) {
-        settingSessions.add(session);
+    public static void addVisionSettingSession(Session session) {
+        visionSettingSessions.add(session);
+    }
+
+    public static void addBleSettingSession(Session session) {
+        bleSettingSessions.add(session);
     }
 
     public static void addVideoSession(Session session) {
@@ -110,7 +119,8 @@ public class SessionRegistry {
     }
 
     public static void removeSession(Session session) {
-        settingSessions.remove(session);
+        visionSettingSessions.remove(session);
+        bleSettingSessions.remove(session);
         videoSessions.remove(session);
         gameSessions.remove(session);
     }

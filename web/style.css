@@ -32,7 +32,7 @@ body {
     justify-content: space-between;
 }
 
-button {
+button, select {
     border: none;
     border-radius: 5px;
     padding: 5px 10px;
@@ -154,14 +154,6 @@ table {
 .cellName {
     text-align: left;
     height: 50px;
-}
-
-.detectionActive {
-    color: #5a5
-}
-
-.detectionInActive {
-    color: #a55
 }
 
 .hamburger {

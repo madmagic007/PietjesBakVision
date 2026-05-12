@@ -1,10 +1,10 @@
-package me.madmagic.detection.model.params;
+package me.madmagic.params;
 
 import org.json.JSONObject;
 
 import java.util.HashMap;
 
-public class ModelParamCollection extends HashMap<String, ModelParam> {
+public class ParamCollection extends HashMap<String, Param> {
 
     public void add(String name, int value, int min, int max) {
         put(name, new NumberParam(value, min, max));
@@ -31,7 +31,7 @@ public class ModelParamCollection extends HashMap<String, ModelParam> {
     }
 
     public void update(String key, int value) {
-        ModelParam p = get(key);
+        Param p = get(key);
         if (p == null) return;
 
         p.value = value;

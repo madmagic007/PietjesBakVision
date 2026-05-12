@@ -1,13 +1,13 @@
-package me.madmagic.detection.model.params;
+package me.madmagic.params;
 
 import org.json.JSONObject;
 
-public abstract class ModelParam {
+public abstract class Param {
 
     protected int value = 0;
     public final Type type;
 
-    public ModelParam(Type type) {
+    public Param(Type type) {
         this.type = type;
     }
 

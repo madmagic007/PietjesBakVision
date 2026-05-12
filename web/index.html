@@ -22,15 +22,16 @@
             <span class="inputLabel">Player</span>
         </label>
     </div>
-    <label for="detection">
-        <input type="checkbox" id="detection" onchange="sendWSAction('detectionState', this.checked)"/>
-        <span id="detectionLabel" class="detectionInActive">Detectie</span>
-    </label>
+    <span id="statusText">
+        No dice data
+    </span>
 </div>
 <div class="side-menu" id="sideMenu">
     <div onclick="sendWSAction('join')">Speel mee</div>
     <div onclick="sendWSAction('leave')">Verlaat</div>
     <div onclick="promptSendWS('Wie start er?:', 'newGame')">Nieuw spel</div>
+    <div onclick="location.href='/bleSettings'">BLE Settings</div>
+    <div onclick="location.href='/visionSettings'">Vision Settings</div>
 </div>
 <table id="tblThrow">
     <tr>

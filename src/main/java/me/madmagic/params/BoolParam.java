@@ -1,8 +1,8 @@
-package me.madmagic.detection.model.params;
+package me.madmagic.params;
 
 import org.json.JSONObject;
 
-public class BoolParam extends ModelParam {
+public class BoolParam extends Param {
 
     public BoolParam(boolean defaultValue) {
         super(Type.BOOL);

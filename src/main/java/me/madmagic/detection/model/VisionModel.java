@@ -1,6 +1,6 @@
 package me.madmagic.detection.model;
 
-import me.madmagic.detection.model.params.ModelParamCollection;
+import me.madmagic.params.ParamCollection;
 import org.bytedeco.opencv.opencv_core.UMat;
 
 import java.util.HashMap;
@@ -15,7 +15,7 @@ public abstract class VisionModel {
         this.name = name;
     }
 
-    public ModelParamCollection params = new ModelParamCollection() {{
+    public ParamCollection params = new ParamCollection() {{
         add("showContours", false);
         add("showContourArea", false);
         add("showContourCompactness", false);

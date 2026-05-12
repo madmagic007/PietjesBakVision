@@ -2,8 +2,8 @@ package me.madmagic.detection;
 
 import me.madmagic.Main;
 import me.madmagic.detection.model.VisionModel;
+import me.madmagic.game.GameInstance;
 import me.madmagic.game.ThrowVal;
-import me.madmagic.webinterface.socket.SessionRegistry;
 import org.bytedeco.opencv.global.opencv_videoio;
 import org.bytedeco.opencv.opencv_core.UMat;
 import org.bytedeco.opencv.opencv_videoio.VideoCapture;
@@ -20,7 +20,6 @@ public class VisionRunner {
     private static VideoCapture capture;
     public static volatile boolean stopCalled = true;
     private static volatile String newModel = "";
-    private static ThrowVal throwVal;
 
     public static void start() {
         capture = new VideoCapture(Main.camIndex);
@@ -63,14 +62,8 @@ public class VisionRunner {
         }
 
         List<Integer> scores = model.getDieScore(cameraFrame);
-
-        if (scores.size() != 3) {
-            SessionRegistry.broadcastThrowVal("0");
-            return;
-        }
-
-        throwVal = ThrowVal.fromScores(scores);
-        SessionRegistry.broadcastThrowVal(throwVal.scoreAsString());
+        ThrowVal throwVal = ThrowVal.fromScores(scores);
+        GameInstance.setThrow(throwVal);
     }
 
     public static void updateModel(String modelName) {
@@ -89,10 +82,6 @@ public class VisionRunner {
         if (!modelName.equals(getActiveModelName())) return;
 
         VisionModel.models.get(getActiveModelName()).params.update(key, value);
-    }
-
-    public static ThrowVal getCurrentThrow() {
-        return throwVal;
     }
 
     public static boolean isRunning() {

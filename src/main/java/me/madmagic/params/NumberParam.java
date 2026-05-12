@@ -1,8 +1,8 @@
-package me.madmagic.detection.model.params;
+package me.madmagic.params;
 
 import org.json.JSONObject;
 
-public class NumberParam extends ModelParam {
+public class NumberParam extends Param {
 
     private final int min, max;
 

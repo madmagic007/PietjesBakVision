@@ -7,7 +7,7 @@ import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class SettingsSocket implements WebSocketListener {
+public class VisionSettingsSocket implements WebSocketListener {
 
     private volatile Session s;
 
@@ -53,7 +53,7 @@ public class SettingsSocket implements WebSocketListener {
     @Override
     public void onWebSocketConnect(Session session) {
         s = session;
-        SessionRegistry.addSettingSession(s);
+        SessionRegistry.addVisionSettingSession(s);
     }
 
     @Override

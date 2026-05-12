@@ -16,7 +16,7 @@ function settingsConnect() {
         return;
     }
 
-    settingsWs = new WebSocket("ws://" + window.location.host + "/ws/settings");
+    settingsWs = new WebSocket("ws://" + window.location.host + "/ws/visionSettings");
 
     settingsWs.onopen = () => {
         settingsWs.send("request");

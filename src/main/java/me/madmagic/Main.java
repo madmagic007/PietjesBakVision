@@ -1,18 +1,17 @@
 package me.madmagic;
 
-import me.madmagic.ble.BleHandler;
+import me.madmagic.webinterface.ServerInstance;
 
 public class Main {
 
     public static int camIndex = 1;
 
     public static void main(String[] args) throws Exception {
-        BleHandler.init();
-//        ServerInstance.init();
-//
-//        if (args.length != 0) {
-//            camIndex = Integer.parseInt(args[0]);
-//        }
+        ServerInstance.init();
+
+        if (args.length != 0) {
+            camIndex = Integer.parseInt(args[0]);
+        }
     }
 }
 

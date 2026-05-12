@@ -3,6 +3,7 @@ let reconnectTimer;
 
 const hamburger = document.getElementById('hamburger');
 const sideMenu = document.getElementById('sideMenu');
+const statusText = document.getElementById('statusText');
 
 function wsConnect() {
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
@@ -17,19 +18,14 @@ function wsConnect() {
 
         let o = JSON.parse(e.data);
 
-        if ("detectionState" in o) {
-            let lbl = document.getElementById("detectionLabel")
-            let chk = document.getElementById("detection")
-
-            if (o["detectionState"]) {
-                lbl.classList.add("detectionActive");
-                lbl.classList.remove("detectionInActive");
-                chk.checked = true;
-            } else {
-                lbl.classList.remove("detectionActive");
-                lbl.classList.add("detectionInActive");
-                chk.checked = false;
-            }
+        if (o["visionRunning"] == true) {
+            statusText.innerHTML = "Vision Running";
+        } else if (o["bleConnected"]) {
+            statusText.innerHTML = "BLE dice connected";
+        } else if (o["bleRunning"]) {
+            statusText.innerHTML = "Waiting for BLE dice";
+        } else {
+            statusText.innerHTML = "No dice data";
         }
 
         if ("throwVal" in o) {
